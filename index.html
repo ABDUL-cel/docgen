@@ -246,13 +246,12 @@
 
     loadTemplate();
 
-    // 2. UNLOCK FUNCTION
+    // 2. UNLOCK FUNCTION (PERMANENT UNLOCK)
     function unlockDownload() {
       document.getElementById('watermark').style.display = 'none';
       document.querySelector('.btn-paystack').style.display = 'none';
       document.querySelector('.btn-ad').style.display = 'none';
       document.getElementById('downloadBtn').style.display = 'flex';
-      alert('🎉 Unlocked! Tap "Download Official PDF" to save your document.');
     }
 
     // 3. PAYSTACK PAYMENT PROCESSOR
@@ -294,7 +293,7 @@
       }, 1000);
     }
 
-    // 5. POST-DOWNLOAD AD GATE (5 SECONDS)
+    // 5. POST-DOWNLOAD AD GATE (5 SECONDS) & PDF TRIGGER
     function triggerPostDownloadAd() {
       const modal = document.getElementById('postDownloadModal');
       const timerEl = document.getElementById('postTimer');
@@ -310,17 +309,16 @@
         if (timeLeft <= 0) {
           clearInterval(countdown);
           modal.style.display = 'none';
-          generatePDF();
+          downloadPDF();
         }
       }, 1000);
     }
 
-    // 6. EXPORT PDF FROM LIVE EDITABLE CONTENT
-    function generatePDF() {
+    // 6. RELIABLE PDF DOWNLOAD FUNCTION
+    function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
-      // Get pure text from the editable area
       const textContent = document.getElementById('previewContent').innerText;
 
       doc.setFont('times', 'normal');
@@ -335,3 +333,4 @@
   </script>
 </body>
 </html>
+
