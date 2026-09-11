@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DocGen - Instant Legal Contract & NDA Generator</title>
+  <title>DocGen - Business Letter & Agreement Suite</title>
   
   <!-- jsPDF & Paystack SDKs -->
-  <meta name="google-adsense-account" content="ca-pub-2059640298015843">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://js.paystack.co/v2/inline.js"></script>
 
-  <!-- GOOGLE ADSENSE VERIFICATION & MAIN SCRIPT -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2059640298015843"
-       crossorigin="anonymous"></script>
+  <!-- ADSENSE MAIN SCRIPT -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2059640298015843" crossorigin="anonymous"></script>
 
   <style>
     :root {
@@ -47,15 +45,18 @@
     }
     .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
 
-    /* Document Preview Box */
+    /* Editable Document Preview Box */
     .preview-box {
       background: #ffffff; color: #1e293b; padding: 20px; border-radius: 8px;
       height: 380px; overflow-y: auto; font-family: 'Times New Roman', Times, serif;
-      font-size: 0.85rem; line-height: 1.6; border: 1px solid #cbd5e1; position: relative;
+      font-size: 0.9rem; line-height: 1.6; border: 1px solid #cbd5e1; position: relative;
     }
+    .editable-area { outline: none; padding: 4px; min-height: 100%; }
+    .editable-area:focus { background: #f8fafc; border: 1px dashed #0284c7; }
+    
     .watermark {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
-      font-size: 3rem; color: rgba(0, 0, 0, 0.15); font-weight: 800; pointer-events: none;
+      font-size: 2.8rem; color: rgba(0, 0, 0, 0.12); font-weight: 800; pointer-events: none;
       text-transform: uppercase; white-space: nowrap; user-select: none;
     }
 
@@ -73,47 +74,57 @@
     .btn-download { background: var(--primary); color: #ffffff; display: none; }
     .btn-download:hover { background: var(--primary-hover); }
 
-    /* Rewarded Ad Modal */
+    /* Modal Styling */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 999;
+      background: rgba(0, 0, 0, 0.88); display: none; justify-content: center; align-items: center; z-index: 999;
     }
     .modal-content {
-      background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 12px;
+      background: var(--card); border: 1px solid var(--border); padding: 24px; border-radius: 12px;
       max-width: 450px; text-align: center; width: 90%;
     }
-    .timer-display { font-size: 3rem; font-weight: 800; color: var(--primary); margin: 16px 0; }
+    .timer-display { font-size: 2.8rem; font-weight: 800; color: var(--primary); margin: 12px 0; }
+    
+    /* Ad Containers */
+    .ad-banner-box {
+      margin-top: 16px; background: #000; border-radius: 8px; overflow: hidden;
+      min-height: 90px; display: flex; align-items: center; justify-content: center;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
     <header>
-      <h1>📜 Instant Legal Document Generator</h1>
-      <p>Generate legally drafted Contracts & NDAs in seconds. Export clean PDF files instantly.</p>
+      <h1>📜 Business Letter & Agreement Suite</h1>
+      <p>Select from 6 customizable templates. Edit text directly, then pay or watch ads to export PDF.</p>
     </header>
 
     <div class="grid">
       <!-- FORM INPUTS -->
       <div class="card">
-        <h2>1. Enter Contract Details</h2>
+        <h2>1. Template & Business Details</h2>
         
         <div class="form-group">
-          <label for="docType">Document Type</label>
-          <select id="docType" onchange="updatePreview()">
-            <option value="nda">Non-Disclosure Agreement (NDA)</option>
-            <option value="freelance">Freelance Service Agreement</option>
+          <label for="docType">Select Document Template</label>
+          <select id="docType" onchange="loadTemplate()">
+            <option value="offer">1. Business Offer & Engagement Letter</option>
+            <option value="nda">2. Mutual Non-Disclosure Agreement (NDA)</option>
+            <option value="demand">3. Formal Payment Demand Notice</option>
+            <option value="freelance">4. General Service / Freelance Agreement</option>
+            <option value="tenancy">5. Tenancy / Property Lease Summary</option>
+            <option value="employment">6. Formal Employment & Job Offer Letter</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="partyA">Disclosing Party / Client Name</label>
-          <input type="text" id="partyA" value="Acme Corporation Ltd" oninput="updatePreview()">
+          <label for="partyA">Sender / Issuer Name</label>
+          <input type="text" id="partyA" value="Acme Solutions Ltd" oninput="updateTemplateValues()">
         </div>
 
         <div class="form-group">
-          <label for="partyB">Receiving Party / Contractor Name</label>
-          <input type="text" id="partyB" value="John Doe" oninput="updatePreview()">
+          <label for="partyB">Recipient / Client Name</label>
+          <input type="text" id="partyB" value="John Doe Services" oninput="updateTemplateValues()">
         </div>
 
         <div class="form-group">
@@ -123,54 +134,55 @@
 
         <div class="form-group">
           <label for="effectiveDate">Effective Date</label>
-          <input type="date" id="effectiveDate" onchange="updatePreview()">
-        </div>
-
-        <div class="form-group">
-          <label for="customTerms">Specific Terms / Scope of Work</label>
-          <textarea id="customTerms" rows="3" placeholder="Enter specific terms or scope..." oninput="updatePreview()">To strictly maintain confidentiality regarding all proprietary software, databases, and trade secrets shared during engagement.</textarea>
+          <input type="date" id="effectiveDate" onchange="updateTemplateValues()">
         </div>
       </div>
 
-      <!-- LIVE PREVIEW & PAYWALL -->
+      <!-- LIVE PREVIEW & MONETIZATION -->
       <div class="card">
-        <h2>2. Dynamic Watermarked Preview</h2>
+        <h2>2. Live Editable Preview (Click text to edit)</h2>
         
         <div class="preview-box" id="previewContainer">
           <div class="watermark" id="watermark">PREVIEW ONLY</div>
-          <div id="previewContent"></div>
+          <div id="previewContent" class="editable-area" contenteditable="true"></div>
+        </div>
+
+        <!-- GOOGLE ADSENSE UNIT #1 (BANNER AD BELOW PREVIEW) -->
+        <div class="ad-banner-box">
+          <ins class="adsbygoogle"
+               style="display:block; width:100%; height:90px;"
+               data-ad-client="ca-pub-2059640298015843"
+               data-ad-format="horizontal"
+               data-full-width-responsive="true"></ins>
         </div>
 
         <div class="paywall-container">
-          <!-- Option A: Direct Payment via Paystack -->
           <button class="btn btn-paystack" onclick="payWithPaystack()">
             💳 Unlock & Download PDF — ₦1,500
           </button>
 
-          <!-- Option B: Watch Rewarded Video Ad -->
           <button class="btn btn-ad" onclick="startRewardedAd()">
-            🎬 Watch 15-Sec Ad to Download Free
+            🎬 Watch 30-Sec Ad to Download Free
           </button>
 
-          <!-- Download Button (Unlocked post-payment or ad completion) -->
-          <button class="btn btn-download" id="downloadBtn" onclick="generatePDF()">
-            ✅ Download Official PDF (Unlocked)
+          <button class="btn btn-download" id="downloadBtn" onclick="triggerPostDownloadAd()">
+            ✅ Download Official PDF
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- REWARDED AD MODAL -->
+  <!-- PRIMARY REWARDED AD MODAL (30 SECONDS) -->
   <div class="modal-overlay" id="adModal">
     <div class="modal-content">
-      <h3>📺 Watching Sponsored Ad</h3>
+      <h3>📺 Unlocking Your Document</h3>
       <p style="color: var(--muted); font-size: 0.85rem; margin-top: 6px;">
-        Please wait for the timer to reach zero to unlock your free document download.
+        Please wait for the 30-second sponsored ad timer to finish.
       </p>
 
-      <!-- GOOGLE ADSENSE DISPLAY AD CONTAINER WITH YOUR PUBLISHER ID -->
-      <div style="margin: 16px 0; min-height: 180px; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+      <!-- GOOGLE ADSENSE UNIT #2 (IN-MODAL RECTANGLE AD) -->
+      <div style="margin: 14px 0; min-height: 180px; background: #000; border-radius: 8px; overflow: hidden;">
         <ins class="adsbygoogle"
              style="display:block; width:100%; height:180px;"
              data-ad-client="ca-pub-2059640298015843"
@@ -178,57 +190,61 @@
              data-full-width-responsive="true"></ins>
       </div>
 
-      <div class="timer-display" id="adTimer">15</div>
+      <div class="timer-display" id="adTimer">30</div>
       <p style="font-size: 0.8rem; color: var(--muted);">Do not close this window...</p>
     </div>
   </div>
 
+  <!-- SECONDARY POST-DOWNLOAD AD MODAL (5 SECONDS) -->
+  <div class="modal-overlay" id="postDownloadModal">
+    <div class="modal-content">
+      <h3>⏳ Preparing PDF File...</h3>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-top: 6px;">
+        Finalizing compilation. Download starts in 5 seconds.
+      </p>
+
+      <div style="margin: 14px 0; min-height: 140px; background: #000; border-radius: 8px; overflow: hidden; display:flex; align-items:center; justify-content:center;">
+        <span style="color:#64748b; font-size:0.85rem;">[ Sponsored Ad Unit Loading ]</span>
+      </div>
+
+      <div class="timer-display" id="postTimer" style="color:#09a5db;">5</div>
+    </div>
+  </div>
+
   <script>
-    // Set default date to today
     document.getElementById('effectiveDate').valueAsDate = new Date();
 
-    // 1. UPDATE PREVIEW IN REAL TIME
-    function updatePreview() {
-      const docType = document.getElementById('docType').value;
-      const partyA = document.getElementById('partyA').value || '[Party A]';
-      const partyB = document.getElementById('partyB').value || '[Party B]';
-      const date = document.getElementById('effectiveDate').value || '[Date]';
-      const terms = document.getElementById('customTerms').value || '[Terms]';
+    // 1. TEMPLATE LIBRARY (6 TARGET DOCUMENTS)
+    function loadTemplate() {
+      const type = document.getElementById('docType').value;
+      const a = document.getElementById('partyA').value || '[Issuer]';
+      const b = document.getElementById('partyB').value || '[Recipient]';
+      const d = document.getElementById('effectiveDate').value || '[Date]';
+      
+      let content = '';
 
-      let html = '';
-
-      if (docType === 'nda') {
-        html = `
-          <h3 style="text-align: center; text-transform: uppercase;">MUTUAL NON-DISCLOSURE AGREEMENT</h3>
-          <p style="margin-top: 14px;">This Non-Disclosure Agreement (the "Agreement") is entered into on <strong>${date}</strong>, by and between:</p>
-          <p style="margin-top: 8px;"><strong>1. ${partyA}</strong> ("Disclosing Party"), and</p>
-          <p><strong>2. ${partyB}</strong> ("Receiving Party").</p>
-          <p style="margin-top: 12px;"><strong>1. Purpose:</strong> The parties intend to evaluate a potential business relationship. In connection with this evaluation, Disclosing Party may disclose confidential information to Receiving Party.</p>
-          <p style="margin-top: 8px;"><strong>2. Obligations:</strong> ${terms}</p>
-          <p style="margin-top: 8px;"><strong>3. Term:</strong> This Agreement shall remain in effect for a period of two (2) years from the Effective Date.</p>
-          <div style="margin-top: 30px; display: flex; justify-content: space-between;">
-            <div>_____________________<br><strong>${partyA}</strong></div>
-            <div>_____________________<br><strong>${partyB}</strong></div>
-          </div>
-        `;
-      } else {
-        html = `
-          <h3 style="text-align: center; text-transform: uppercase;">FREELANCE SERVICE AGREEMENT</h3>
-          <p style="margin-top: 14px;">This Service Agreement is made effective as of <strong>${date}</strong>, by and between <strong>${partyA}</strong> ("Client") and <strong>${partyB}</strong> ("Contractor").</p>
-          <p style="margin-top: 12px;"><strong>1. Scope of Services:</strong> Contractor agrees to perform the following services: ${terms}</p>
-          <p style="margin-top: 8px;"><strong>2. Payment Terms:</strong> Compensation shall be paid upon successful completion and acceptance of deliverables.</p>
-          <p style="margin-top: 8px;"><strong>3. Independent Contractor:</strong> Contractor is an independent contractor, not an employee of Client.</p>
-          <div style="margin-top: 30px; display: flex; justify-content: space-between;">
-            <div>_____________________<br><strong>${partyA}</strong></div>
-            <div>_____________________<br><strong>${partyB}</strong></div>
-          </div>
-        `;
+      if (type === 'offer') {
+        content = `<h3 style="text-align:center;">BUSINESS ENGAGEMENT OFFER</h3><br>Date: ${d}<br><br>Dear ${b},<br><br>We are pleased to offer this business proposal on behalf of <strong>${a}</strong>. We propose providing custom business management services under agreed project terms.<br><br><strong>Key Conditions:</strong><br>1. Service commencement shall begin on ${d}.<br>2. All work outputs remain intellectual property of ${a} until invoices are settled.<br><br>Sincerely,<br><strong>${a}</strong>`;
+      } else if (type === 'nda') {
+        content = `<h3 style="text-align:center;">MUTUAL NON-DISCLOSURE AGREEMENT</h3><br>This Agreement is entered into on ${d} between <strong>${a}</strong> and <strong>${b}</strong>.<br><br>1. <strong>Confidentiality:</strong> Both parties agree not to disclose proprietary data, software, or client secrets shared during meetings.<br>2. <strong>Term:</strong> Valid for two (2) years from ${d}.`;
+      } else if (type === 'demand') {
+        content = `<h3 style="text-align:center;">FORMAL PAYMENT DEMAND NOTICE</h3><br>Date: ${d}<br><br>To: ${b}<br>From: <strong>${a}</strong><br><br>RE: Outstanding Balance Settlement<br><br>This letter serves as a formal notice regarding unpaid balances past due for services rendered. Please settle all balances within seven (7) business days from ${d} to avoid further escalation.`;
+      } else if (type === 'freelance') {
+        content = `<h3 style="text-align:center;">FREELANCE SERVICE AGREEMENT</h3><br>Effective Date: ${d}<br><br>Client: <strong>${a}</strong><br>Contractor: <strong>${b}</strong><br><br>1. <strong>Scope:</strong> Contractor agrees to deliver technical consulting services as requested.<br>2. <strong>Payment:</strong> Invoices shall be processed within 14 days of task verification.`;
+      } else if (type === 'tenancy') {
+        content = `<h3 style="text-align:center;">TENANCY LEASE AGREEMENT SUMMARY</h3><br>Date: ${d}<br><br>Landlord: <strong>${a}</strong><br>Tenant: <strong>${b}</strong><br><br>1. <strong>Premises:</strong> Tenant hereby leases designated property for residential/commercial use starting ${d}.<br>2. <strong>Upkeep:</strong> Tenant agrees to maintain premises in good repair.`;
+      } else if (type === 'employment') {
+        content = `<h3 style="text-align:center;">FORMAL EMPLOYMENT OFFER LETTER</h3><br>Date: ${d}<br><br>Dear ${b},<br><br><strong>${a}</strong> is excited to offer you employment for the position of Business Operations Manager starting on ${d}.<br><br>1. <strong>Duties:</strong> You will report to executive staff and carry out operational tasks.<br>2. <strong>Confidentiality:</strong> You agree to protect internal business operations.`;
       }
 
-      document.getElementById('previewContent').innerHTML = html;
+      document.getElementById('previewContent').innerHTML = content;
     }
 
-    updatePreview();
+    function updateTemplateValues() {
+      loadTemplate();
+    }
+
+    loadTemplate();
 
     // 2. UNLOCK FUNCTION
     function unlockDownload() {
@@ -248,28 +264,20 @@
       popup.newTransaction({
         key: 'pk_live_637c3f5e8c7528ec5c203a482b0adb5419abaa75',
         email: email,
-        amount: 150000, // ₦1,500 in kobo
+        amount: 150000,
         currency: 'NGN',
-        onSuccess: function(transaction) {
-          unlockDownload();
-        },
-        onCancel: function() {
-          alert('Transaction canceled.');
-        }
+        onSuccess: function() { unlockDownload(); },
+        onCancel: function() { alert('Transaction canceled.'); }
       });
     }
 
-    // 4. REWARDED AD COUNTDOWN
+    // 4. PRIMARY REWARDED AD (30 SECONDS)
     function startRewardedAd() {
       const modal = document.getElementById('adModal');
       const timerEl = document.getElementById('adTimer');
-      let timeLeft = 15;
+      let timeLeft = 30;
 
-      try {
-        (adsbygoogle = window.adsbygoogle || []).push({});
-      } catch (e) {
-        console.log("AdSense refresh", e);
-      }
+      try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
 
       modal.style.display = 'flex';
       timerEl.innerText = timeLeft;
@@ -286,44 +294,43 @@
       }, 1000);
     }
 
-    // 5. PDF GENERATION ENGINE
+    // 5. POST-DOWNLOAD AD GATE (5 SECONDS)
+    function triggerPostDownloadAd() {
+      const modal = document.getElementById('postDownloadModal');
+      const timerEl = document.getElementById('postTimer');
+      let timeLeft = 5;
+
+      modal.style.display = 'flex';
+      timerEl.innerText = timeLeft;
+
+      const countdown = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          modal.style.display = 'none';
+          generatePDF();
+        }
+      }, 1000);
+    }
+
+    // 6. EXPORT PDF FROM LIVE EDITABLE CONTENT
     function generatePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
-      const docType = document.getElementById('docType').value;
-      const partyA = document.getElementById('partyA').value || '[Party A]';
-      const partyB = document.getElementById('partyB').value || '[Party B]';
-      const date = document.getElementById('effectiveDate').value || '[Date]';
-      const terms = document.getElementById('customTerms').value || '[Terms]';
-
-      doc.setFont('times', 'bold');
-      doc.setFontSize(16);
-      
-      const title = docType === 'nda' ? 'MUTUAL NON-DISCLOSURE AGREEMENT' : 'FREELANCE SERVICE AGREEMENT';
-      doc.text(title, 297, 60, { align: 'center' });
+      // Get pure text from the editable area
+      const textContent = document.getElementById('previewContent').innerText;
 
       doc.setFont('times', 'normal');
       doc.setFontSize(11);
 
-      let textContent = '';
-      if (docType === 'nda') {
-        textContent = `This Non-Disclosure Agreement (the "Agreement") is entered into on ${date}, by and between:\n\n1. ${partyA} ("Disclosing Party"), and\n2. ${partyB} ("Receiving Party").\n\n1. Purpose:\nThe parties intend to evaluate a potential business relationship. In connection with this evaluation, Disclosing Party may disclose confidential information to Receiving Party.\n\n2. Obligations:\n${terms}\n\n3. Term:\nThis Agreement shall remain in effect for a period of two (2) years from the Effective Date.`;
-      } else {
-        textContent = `This Service Agreement is made effective as of ${date}, by and between ${partyA} ("Client") and ${partyB} ("Contractor").\n\n1. Scope of Services:\nContractor agrees to perform the following services: ${terms}\n\n2. Payment Terms:\nCompensation shall be paid upon successful completion and acceptance of deliverables.\n\n3. Independent Contractor Status:\nContractor is an independent contractor, and nothing in this Agreement shall be construed to create an employer-employee relationship.`;
-      }
-
       const splitText = doc.splitTextToSize(textContent, 500);
-      doc.text(splitText, 40, 100);
+      doc.text(splitText, 45, 60);
 
-      const sigY = 450;
-      doc.text('_______________________', 40, sigY);
-      doc.text(`Signed: ${partyA}`, 40, sigY + 15);
-
-      doc.text('_______________________', 350, sigY);
-      doc.text(`Signed: ${partyB}`, 350, sigY + 15);
-
-      doc.save(`${docType}_${partyB.replace(/\s+/g, '_')}.pdf`);
+      const type = document.getElementById('docType').value;
+      doc.save(`${type}_document.pdf`);
     }
   </script>
 </body>
