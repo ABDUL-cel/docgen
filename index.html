@@ -7,7 +7,7 @@
   <!-- GOOGLE ADSENSE META VERIFICATION -->
   <meta name="google-adsense-account" content="ca-pub-2059640298015843">
 
-  <title>DocGen - Business Letter & Agreement Suite</title>
+  <title>DocGen - Free Business Letter & Agreement Generator</title>
   
   <!-- jsPDF & Paystack SDKs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -31,9 +31,20 @@
     body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
     
     .container { max-width: 1100px; margin: 0 auto; }
-    header { text-align: center; padding: 20px 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
-    header h1 { font-size: 2rem; color: var(--primary); }
-    header p { color: var(--muted); font-size: 0.95rem; }
+    
+    /* Homepage Hero Header */
+    .hero {
+      text-align: center;
+      padding: 30px 20px;
+      margin-bottom: 24px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .hero h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 8px; }
+    .hero p { color: var(--muted); font-size: 1rem; max-width: 600px; margin: 0 auto 16px auto; }
+    .badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .badge { background: #334155; color: #f8fafc; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
 
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
@@ -99,15 +110,21 @@
 <body>
 
   <div class="container">
-    <header>
-      <h1>📜 Business Letter & Agreement Suite</h1>
-      <p>Select from 6 customizable templates. Edit text directly, then pay or watch ads to export PDF.</p>
+    <!-- HOMEPAGE HERO HEADER -->
+    <header class="hero">
+      <h1>📜 Instant Business Document Generator</h1>
+      <p>Select a legal template, customize party details, edit text directly, and export official PDF files instantly.</p>
+      <div class="badges">
+        <span class="badge">⚡ Instant Generation</span>
+        <span class="badge">🔒 Secure PDF Export</span>
+        <span class="badge">📄 6 Business Templates</span>
+      </div>
     </header>
 
     <div class="grid">
       <!-- FORM INPUTS -->
       <div class="card">
-        <h2>1. Template & Business Details</h2>
+        <h2>1. Enter Details & Select Template</h2>
         
         <div class="form-group">
           <label for="docType">Select Document Template</label>
@@ -220,7 +237,7 @@
   <script>
     document.getElementById('effectiveDate').valueAsDate = new Date();
 
-    // 1. TEMPLATE LIBRARY (6 TARGET DOCUMENTS)
+    // 1. TEMPLATE LIBRARY
     function loadTemplate() {
       const type = document.getElementById('docType').value;
       const a = document.getElementById('partyA').value || '[Issuer]';
@@ -252,7 +269,7 @@
 
     loadTemplate();
 
-    // 2. UNLOCK FUNCTION (PERMANENT UNLOCK)
+    // 2. UNLOCK FUNCTION
     function unlockDownload() {
       document.getElementById('watermark').style.display = 'none';
       document.querySelector('.btn-paystack').style.display = 'none';
