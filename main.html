@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- GOOGLE ADSENSE META VERIFICATION -->
+  <meta name="google-adsense-account" content="ca-pub-2059640298015843">
+
+  <title>DocGen - Document Generator</title>
+  
+  <!-- jsPDF & Paystack SDKs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+
+  <!-- ADSENSE MAIN SCRIPT -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2059640298015843" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+    
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    /* Navigation Header */
+    nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 0; margin-bottom: 24px; border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; }
+    .nav-btn {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; text-decoration: none;
+    }
+    .nav-btn:hover { border-color: var(--primary); }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .card h2 { font-size: 1.2rem; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 0.9rem; outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+
+    /* Document Preview Box */
+    .preview-box {
+      background: #ffffff; color: #1e293b; padding: 24px; border-radius: 8px;
+      height: 440px; overflow-y: auto; font-family: 'Times New Roman', Times, serif;
+      font-size: 0.92rem; line-height: 1.6; border: 1px solid #cbd5e1; position: relative;
+    }
+    .editable-area { outline: none; padding: 4px; min-height: 100%; white-space: pre-wrap; }
+    .editable-area:focus { background: #f8fafc; border: 1px dashed #0284c7; }
+    
+    .watermark {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 2.8rem; color: rgba(0, 0, 0, 0.12); font-weight: 800; pointer-events: none;
+      text-transform: uppercase; white-space: nowrap; user-select: none;
+    }
+
+    /* Monetization Buttons */
+    .paywall-container { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 0.95rem;
+      font-weight: 700; cursor: pointer; transition: 0.2s ease; display: flex;
+      justify-content: center; align-items: center; gap: 8px;
+    }
+    .btn-paystack { background: #09a5db; color: #ffffff; }
+    .btn-paystack:hover { background: #0284c7; }
+    .btn-ad { background: #8b5cf6; color: #ffffff; }
+    .btn-ad:hover { background: #7c3aed; }
+    .btn-download { background: var(--primary); color: #ffffff; display: none; }
+    .btn-download:hover { background: var(--primary-hover); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.88); display: none; justify-content: center; align-items: center; z-index: 999;
+    }
+    .modal-content {
+      background: var(--card); border: 1px solid var(--border); padding: 24px; border-radius: 12px;
+      max-width: 450px; text-align: center; width: 90%;
+    }
+    .timer-display { font-size: 2.8rem; font-weight: 800; color: var(--primary); margin: 12px 0; }
+    
+    .ad-banner-box {
+      margin-top: 16px; background: #000; border-radius: 8px; overflow: hidden;
+      min-height: 90px; display: flex; align-items: center; justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- NAVIGATION BAR -->
+    <nav>
+      <a href="index.html" class="logo">📜 DocGen</a>
+      <a href="index.html" class="nav-btn">← Back to Homepage</a>
+    </nav>
+
+    <div class="grid">
+      <!-- FORM INPUTS -->
+      <div class="card">
+        <h2>1. Configure Document</h2>
+        
+        <div class="form-group">
+          <label for="docType">Select Document Template</label>
+          <select id="docType" onchange="loadTemplate()">
+            <option value="offer">1. Business Offer & Engagement Letter</option>
+            <option value="nda">2. Mutual Non-Disclosure Agreement (NDA)</option>
+            <option value="demand">3. Formal Payment Demand Notice</option>
+            <option value="freelance">4. General Service / Freelance Agreement</option>
+            <option value="tenancy">5. Tenancy / Property Lease Summary</option>
+            <option value="employment">6. Formal Employment & Job Offer Letter</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="partyA">Sender / First Party Name</label>
+          <input type="text" id="partyA" value="Acme Solutions Ltd" oninput="updateTemplateValues()">
+        </div>
+
+        <div class="form-group">
+          <label for="partyB">Recipient / Second Party Name</label>
+          <input type="text" id="partyB" value="John Doe Services" oninput="updateTemplateValues()">
+        </div>
+
+        <div class="form-group">
+          <label for="userEmail">Your Email (for invoice receipt)</label>
+          <input type="email" id="userEmail" placeholder="client@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="effectiveDate">Effective Date</label>
+          <input type="date" id="effectiveDate" onchange="updateTemplateValues()">
+        </div>
+      </div>
+
+      <!-- LIVE PREVIEW & EXPORT -->
+      <div class="card">
+        <h2>2. Edit Document Preview</h2>
+        
+        <div class="preview-box" id="previewContainer">
+          <div class="watermark" id="watermark">PREVIEW ONLY</div>
+          <div id="previewContent" class="editable-area" contenteditable="true"></div>
+        </div>
+
+        <!-- ADSENSE BANNER -->
+        <div class="ad-banner-box">
+          <ins class="adsbygoogle"
+               style="display:block; width:100%; height:90px;"
+               data-ad-client="ca-pub-2059640298015843"
+               data-ad-slot="7782866605"
+               data-ad-format="horizontal"
+               data-full-width-responsive="true"></ins>
+        </div>
+
+        <div class="paywall-container">
+          <button class="btn btn-paystack" onclick="payWithPaystack()">
+            💳 Unlock & Download PDF — ₦1,500
+          </button>
+
+          <button class="btn btn-ad" onclick="startRewardedAd()">
+            🎬 Watch 30-Sec Ad to Download Free
+          </button>
+
+          <button class="btn btn-download" id="downloadBtn" onclick="triggerPostDownloadAd()">
+            ✅ Download Official PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REWARDED AD MODAL (30 SECONDS) -->
+  <div class="modal-overlay" id="adModal">
+    <div class="modal-content">
+      <h3>📺 Unlocking Your Document</h3>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-top: 6px;">
+        Please wait for the 30-second sponsored ad timer to finish.
+      </p>
+
+      <div style="margin: 14px 0; min-height: 180px; background: #000; border-radius: 8px; overflow: hidden;">
+        <ins class="adsbygoogle"
+             style="display:block; width:100%; height:180px;"
+             data-ad-client="ca-pub-2059640298015843"
+             data-ad-slot="7782866605"
+             data-ad-format="rectangle"
+             data-full-width-responsive="true"></ins>
+      </div>
+
+      <div class="timer-display" id="adTimer">30</div>
+      <p style="font-size: 0.8rem; color: var(--muted);">Do not close this window...</p>
+    </div>
+  </div>
+
+  <!-- POST-DOWNLOAD AD MODAL (5 SECONDS) -->
+  <div class="modal-overlay" id="postDownloadModal">
+    <div class="modal-content">
+      <h3>⏳ Preparing PDF File...</h3>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-top: 6px;">
+        Finalizing PDF compilation. Download starts in 5 seconds.
+      </p>
+
+      <div style="margin: 14px 0; min-height: 140px; background: #000; border-radius: 8px; overflow: hidden; display:flex; align-items:center; justify-content:center;">
+        <span style="color:#64748b; font-size:0.85rem;">[ Sponsored Ad Unit ]</span>
+      </div>
+
+      <div class="timer-display" id="postTimer" style="color:#09a5db;">5</div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('effectiveDate').valueAsDate = new Date();
+
+    // AUTO-SELECT TEMPLATE PASSED FROM INDEX.HTML URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedTemplate = urlParams.get('template');
+    if (selectedTemplate) {
+      document.getElementById('docType').value = selectedTemplate;
+    }
+
+    // EXTENDED, REALISTIC TEMPLATES
+    function loadTemplate() {
+      const type = document.getElementById('docType').value;
+      const a = document.getElementById('partyA').value || '[First Party]';
+      const b = document.getElementById('partyB').value || '[Second Party]';
+      const d = document.getElementById('effectiveDate').value || '[Date]';
+      
+      let content = '';
+
+      if (type === 'offer') {
+        content = `<h3 style="text-align:center;">BUSINESS ENGAGEMENT OFFER & PROPOSAL LETTER</h3><br>` +
+        `<strong>Date:</strong> ${d}<br><br>` +
+        `<strong>From:</strong> ${a}<br>` +
+        `<strong>To:</strong> ${b}<br><br>` +
+        `Dear ${b},<br><br>` +
+        `We are pleased to submit this formal proposal on behalf of <strong>${a}</strong>. We aim to provide high-quality services to support your operational goals under the terms defined below.<br><br>` +
+        `<strong>1. Scope of Work & Deliverables</strong><br>` +
+        `The Issuer (${a}) agrees to render strategic consulting, implementation, and management support tailored to the Recipient's requirements starting on ${d}.<br><br>` +
+        `<strong>2. Commercial Terms & Obligations</strong><br>` +
+        `* All deliverables will be reviewed on a weekly basis.<br>` +
+        `* Final payment shall be issued within fourteen (14) business days upon milestone verification.<br>` +
+        `* Work outputs remain the exclusive intellectual property of ${a} until full payment settlement.<br><br>` +
+        `<strong>3. Acceptance</strong><br>` +
+        `If these conditions align with your expectations, please sign and return a copy of this agreement.<br><br>` +
+        `Sincerely,<br><br>` +
+        `________________________<br>` +
+        `Authorized Representative (${a})`;
+      } 
+      else if (type === 'nda') {
+        content = `<h3 style="text-align:center;">MUTUAL NON-DISCLOSURE & CONFIDENTIALITY AGREEMENT</h3><br>` +
+        `This Non-Disclosure Agreement ("Agreement") is executed on <strong>${d}</strong> by and between:<br><br>` +
+        `<strong>First Party:</strong> ${a}<br>` +
+        `<strong>Second Party:</strong> ${b}<br><br>` +
+        `<strong>1. Purpose</strong><br>` +
+        `The parties intend to engage in discussions regarding a potential business relationship. In connection with these discussions, each party may disclose sensitive technical, financial, and business operations data.<br><br>` +
+        `<strong>2. Obligations of Confidentiality</strong><br>` +
+        `Each receiving party agrees to keep all disclosed material strictly confidential and shall not divulge any information to third parties without prior written consent from the disclosing party.<br><br>` +
+        `<strong>3. Term & Governing Law</strong><br>` +
+        `This obligation shall remain binding for a period of two (2) years from ${d}. This Agreement shall be construed and governed in accordance with applicable commercial laws.<br><br>` +
+        `<strong>IN WITNESS WHEREOF</strong>, the parties have executed this Agreement as of ${d}.<br><br>` +
+        `________________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ________________________<br>` +
+        `${a} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${b}`;
+      } 
+      else if (type === 'demand') {
+        content = `<h3 style="text-align:center;">FORMAL PAYMENT DEMAND NOTICE</h3><br>` +
+        `<strong>Date:</strong> ${d}<br><br>` +
+        `<strong>FROM:</strong> ${a}<br>` +
+        `<strong>TO:</strong> ${b}<br><br>` +
+        `<strong>SUBJECT: FINAL NOTICE OF OVERDUE ACCOUNT SETTLEMENT</strong><br><br>` +
+        `Dear ${b},<br><br>` +
+        `This letter serves as a formal legal demand regarding overdue payments for completed services under our agreement dated prior to ${d}.<br><br>` +
+        `Despite multiple payment reminders, your account balance remains outstanding. You are hereby requested to settle the full balance within seven (7) calendar days from ${d}.<br><br>` +
+        `Failure to liquidate this outstanding balance within the stipulated timeframe will leave ${a} with no option but to initiate formal legal remedies and debt recovery procedures without further notification.<br><br>` +
+        `Yours faithfully,<br><br>` +
+        `________________________<br>` +
+        `Legal / Operations Department (${a})`;
+      } 
+      else if (type === 'freelance') {
+        content = `<h3 style="text-align:center;">GENERAL SERVICE & FREELANCE CONTRACT</h3><br>` +
+        `This Contract is entered into on <strong>${d}</strong> between <strong>${a}</strong> ("Client") and <strong>${b}</strong> ("Contractor").<br><br>` +
+        `<strong>1. Services Rendered</strong><br>` +
+        `The Contractor (${b}) agrees to perform professional contract work as specified in project milestones starting on ${d}.<br><br>` +
+        `<strong>2. Compensation & Timeline</strong><br>` +
+        `* Client shall pay the Contractor according to agreed milestone rates upon task completion.<br>` +
+        `* Invoices shall be processed within seven (7) days of submission.<br><br>` +
+        `<strong>3. Intellectual Property Rights</strong><br>` +
+        `Upon full payment, all right, title, and interest in work deliverables created by ${b} shall transfer entirely to ${a}.<br><br>` +
+        `________________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ________________________<br>` +
+        `Client (${a}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Contractor (${b})`;
+      } 
+      else if (type === 'tenancy') {
+        content = `<h3 style="text-align:center;">TENANCY & PROPERTY LEASE AGREEMENT SUMMARY</h3><br>` +
+        `<strong>Effective Date:</strong> ${d}<br><br>` +
+        `<strong>Landlord:</strong> ${a}<br>` +
+        `<strong>Tenant:</strong> ${b}<br><br>` +
+        `<strong>1. Premises & Term</strong><br>` +
+        `The Landlord (${a}) hereby leases designated premises to the Tenant (${b}) commencing on ${d} for an agreed lease duration.<br><br>` +
+        `<strong>2. Rent & Security Deposit</strong><br>` +
+        `* Rent is payable in advance on or before the due date.<br>` +
+        `* A refundable security deposit shall be held by ${a} to cover potential property damage beyond wear and tear.<br><br>` +
+        `<strong>3. Obligations & Maintenance</strong><br>` +
+        `The Tenant agrees to keep the premises in clean condition, obey building regulations, and avoid unauthorized structural modifications.<br><br>` +
+        `________________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ________________________<br>` +
+        `Landlord (${a}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tenant (${b})`;
+      } 
+      else if (type === 'employment') {
+        content = `<h3 style="text-align:center;">FORMAL EMPLOYMENT OFFER LETTER</h3><br>` +
+        `<strong>Date:</strong> ${d}<br><br>` +
+        `Dear <strong>${b}</strong>,<br><br>` +
+        `On behalf of <strong>${a}</strong>, we are delighted to offer you employment for a full-time position starting on <strong>${d}</strong>.<br><br>` +
+        `<strong>1. Role & Responsibilities</strong><br>` +
+        `You will be responsible for executing key operational goals, collaborating with team leadership, and upholding organizational standards.<br><br>` +
+        `<strong>2. Compensation & Benefits</strong><br>` +
+        `Your salary and employment benefits will be disbursed according to standard payroll cycles starting from your start date.<br><br>` +
+        `<strong>3. Confidentiality & Policies</strong><br>` +
+        `As an employee of ${a}, you agree to adhere to company policies and maintain confidentiality regarding internal operations.<br><br>` +
+        `Sincerely,<br><br>` +
+        `________________________<br>` +
+        `Human Resources (${a})`;
+      }
+
+      document.getElementById('previewContent').innerHTML = content;
+    }
+
+    function updateTemplateValues() {
+      loadTemplate();
+    }
+
+    loadTemplate();
+
+    // UNLOCK & MONETIZATION LOGIC
+    function unlockDownload() {
+      document.getElementById('watermark').style.display = 'none';
+      document.querySelector('.btn-paystack').style.display = 'none';
+      document.querySelector('.btn-ad').style.display = 'none';
+      document.getElementById('downloadBtn').style.display = 'flex';
+    }
+
+    function payWithPaystack() {
+      const emailInput = document.getElementById('userEmail').value;
+      const email = emailInput ? emailInput : 'customer@docgen-ycqr.onrender.com';
+
+      const popup = new PaystackPop();
+      popup.newTransaction({
+        key: 'pk_live_637c3f5e8c7528ec5c203a482b0adb5419abaa75',
+        email: email,
+        amount: 150000,
+        currency: 'NGN',
+        onSuccess: function() { unlockDownload(); },
+        onCancel: function() { alert('Transaction canceled.'); }
+      });
+    }
+
+    function startRewardedAd() {
+      const modal = document.getElementById('adModal');
+      const timerEl = document.getElementById('adTimer');
+      let timeLeft = 30;
+
+      try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+
+      modal.style.display = 'flex';
+      timerEl.innerText = timeLeft;
+
+      const countdown = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          modal.style.display = 'none';
+          unlockDownload();
+        }
+      }, 1000);
+    }
+
+    function triggerPostDownloadAd() {
+      const modal = document.getElementById('postDownloadModal');
+      const timerEl = document.getElementById('postTimer');
+      let timeLeft = 5;
+
+      modal.style.display = 'flex';
+      timerEl.innerText = timeLeft;
+
+      const countdown = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          modal.style.display = 'none';
+          downloadPDF();
+        }
+      }, 1000);
+    }
+
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+      const textContent = document.getElementById('previewContent').innerText;
+
+      doc.setFont('times', 'normal');
+      doc.setFontSize(11);
+
+      const splitText = doc.splitTextToSize(textContent, 500);
+      doc.text(splitText, 45, 60);
+
+      const type = document.getElementById('docType').value;
+      doc.save(`${type}_document.pdf`);
+    }
+  </script>
+</body>
+</html>
+
