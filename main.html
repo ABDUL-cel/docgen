@@ -30,7 +30,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
     
-    .container { max-width: 1100px; margin: 0 auto; }
+    .container { max-width: 1100px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+    .main-content { flex: 1; }
     
     /* Navigation Header */
     nav {
@@ -102,89 +103,106 @@
       margin-top: 16px; background: #000; border-radius: 8px; overflow: hidden;
       min-height: 90px; display: flex; align-items: center; justify-content: center;
     }
+
+    /* Footer Styles */
+    footer {
+      margin-top: 40px;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- NAVIGATION BAR -->
-    <nav>
-      <a href="index.html" class="logo">📜 DocGen</a>
-      <a href="index.html" class="nav-btn">← Back to Homepage</a>
-    </nav>
+    <div class="main-content">
+      <!-- NAVIGATION BAR -->
+      <nav>
+        <a href="index.html" class="logo">📜 DocGen</a>
+        <a href="index.html" class="nav-btn">← Back to Homepage</a>
+      </nav>
 
-    <div class="grid">
-      <!-- FORM INPUTS -->
-      <div class="card">
-        <h2>1. Configure Document</h2>
-        
-        <div class="form-group">
-          <label for="docType">Select Document Template</label>
-          <select id="docType" onchange="loadTemplate()">
-            <option value="offer">1. Business Offer & Engagement Letter</option>
-            <option value="nda">2. Mutual Non-Disclosure Agreement (NDA)</option>
-            <option value="demand">3. Formal Payment Demand Notice</option>
-            <option value="freelance">4. General Service / Freelance Agreement</option>
-            <option value="tenancy">5. Tenancy / Property Lease Summary</option>
-            <option value="employment">6. Formal Employment & Job Offer Letter</option>
-          </select>
+      <div class="grid">
+        <!-- FORM INPUTS -->
+        <div class="card">
+          <h2>1. Configure Document</h2>
+          
+          <div class="form-group">
+            <label for="docType">Select Document Template</label>
+            <select id="docType" onchange="loadTemplate()">
+              <option value="offer">1. Business Offer & Engagement Letter</option>
+              <option value="nda">2. Mutual Non-Disclosure Agreement (NDA)</option>
+              <option value="demand">3. Formal Payment Demand Notice</option>
+              <option value="freelance">4. General Service / Freelance Agreement</option>
+              <option value="tenancy">5. Tenancy / Property Lease Summary</option>
+              <option value="employment">6. Formal Employment & Job Offer Letter</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="partyA">Sender / First Party Name</label>
+            <input type="text" id="partyA" value="Acme Solutions Ltd" oninput="updateTemplateValues()">
+          </div>
+
+          <div class="form-group">
+            <label for="partyB">Recipient / Second Party Name</label>
+            <input type="text" id="partyB" value="John Doe Services" oninput="updateTemplateValues()">
+          </div>
+
+          <div class="form-group">
+            <label for="userEmail">Your Email (for invoice receipt)</label>
+            <input type="email" id="userEmail" placeholder="client@example.com">
+          </div>
+
+          <div class="form-group">
+            <label for="effectiveDate">Effective Date</label>
+            <input type="date" id="effectiveDate" onchange="updateTemplateValues()">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="partyA">Sender / First Party Name</label>
-          <input type="text" id="partyA" value="Acme Solutions Ltd" oninput="updateTemplateValues()">
-        </div>
+        <!-- LIVE PREVIEW & EXPORT -->
+        <div class="card">
+          <h2>2. Edit Document Preview</h2>
+          
+          <div class="preview-box" id="previewContainer">
+            <div class="watermark" id="watermark">PREVIEW ONLY</div>
+            <div id="previewContent" class="editable-area" contenteditable="true"></div>
+          </div>
 
-        <div class="form-group">
-          <label for="partyB">Recipient / Second Party Name</label>
-          <input type="text" id="partyB" value="John Doe Services" oninput="updateTemplateValues()">
-        </div>
+          <!-- ADSENSE BANNER -->
+          <div class="ad-banner-box">
+            <ins class="adsbygoogle"
+                 style="display:block; width:100%; height:90px;"
+                 data-ad-client="ca-pub-2059640298015843"
+                 data-ad-slot="7782866605"
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
+          </div>
 
-        <div class="form-group">
-          <label for="userEmail">Your Email (for invoice receipt)</label>
-          <input type="email" id="userEmail" placeholder="client@example.com">
-        </div>
+          <div class="paywall-container">
+            <button class="btn btn-paystack" onclick="payWithPaystack()">
+              💳 Unlock & Download PDF — ₦1,500
+            </button>
 
-        <div class="form-group">
-          <label for="effectiveDate">Effective Date</label>
-          <input type="date" id="effectiveDate" onchange="updateTemplateValues()">
-        </div>
-      </div>
+            <button class="btn btn-ad" onclick="startRewardedAd()">
+              🎬 Watch 30-Sec Ad to Download Free
+            </button>
 
-      <!-- LIVE PREVIEW & EXPORT -->
-      <div class="card">
-        <h2>2. Edit Document Preview</h2>
-        
-        <div class="preview-box" id="previewContainer">
-          <div class="watermark" id="watermark">PREVIEW ONLY</div>
-          <div id="previewContent" class="editable-area" contenteditable="true"></div>
-        </div>
-
-        <!-- ADSENSE BANNER -->
-        <div class="ad-banner-box">
-          <ins class="adsbygoogle"
-               style="display:block; width:100%; height:90px;"
-               data-ad-client="ca-pub-2059640298015843"
-               data-ad-slot="7782866605"
-               data-ad-format="horizontal"
-               data-full-width-responsive="true"></ins>
-        </div>
-
-        <div class="paywall-container">
-          <button class="btn btn-paystack" onclick="payWithPaystack()">
-            💳 Unlock & Download PDF — ₦1,500
-          </button>
-
-          <button class="btn btn-ad" onclick="startRewardedAd()">
-            🎬 Watch 30-Sec Ad to Download Free
-          </button>
-
-          <button class="btn btn-download" id="downloadBtn" onclick="triggerPostDownloadAd()">
-            ✅ Download Official PDF
-          </button>
+            <button class="btn btn-download" id="downloadBtn" onclick="triggerPostDownloadAd()">
+              ✅ Download Official PDF
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>&copy; 2026 DocGen. All rights reserved. | Khalid Abdulazeez created</p>
+    </footer>
   </div>
 
   <!-- REWARDED AD MODAL (30 SECONDS) -->
